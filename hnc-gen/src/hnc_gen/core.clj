@@ -1,5 +1,9 @@
 (ns hnc-gen.core
-  (:require hnc-gen.term))
+  (:require
+    [hnc-gen.term :as term]
+    [hnc-gen.bible :as bible]
+  )
+)
 
 (defn foo
   "I don't do a whole lot."
@@ -35,4 +39,3 @@
 
 (defn AND
   ([x,y] (flatten (vector (eval x) "and" (eval y)))))
-
