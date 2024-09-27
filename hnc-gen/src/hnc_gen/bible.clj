@@ -1,5 +1,7 @@
 (ns hnc-gen.bible)
 
+(def language :English)
+
 (defn is-single?
     [lst]
     (if (and (seq lst) (= (first lst) 'GOD))
@@ -20,55 +22,90 @@
 )
 
 (defn CREATE
-    ([] (vector "create"))
-;   ([{:keys [language]}] (if (= language "Chinese") (vector "创造") (vector "create")))
-    ([creator object & {:keys [tense time] :or {tense "Now"}}]
-        (make-sentence
-            (flatten
-                (vector
-                    (if (nil? time) [] (vector (eval time)))
-                    (case tense
-                        "Now"
-                        (flatten (vector (eval creator) (if (is-single? creator) "creates" "create") (eval object)))
-                        "Past"
-                        (flatten (vector (eval creator) (if (is-single? creator) "created" "create") (eval object)))
+    ([] 
+        (case language
+            :English
+            (vector "create")
+            :Chinese
+            (vector "创造")
+        )
+    )
+    ([creator object & {:keys [tense time] 
+                  :or {tense "Now" time nil}}]
+         
+         (case language
+             :English
+             (make-sentence
+                 (flatten
+                    (vector
+                        (if (nil? time) [] (vector (eval time)))
+                        (case tense
+                          "Now"
+                          (flatten (vector (eval creator) (if (is-single? creator) "creates" "create") (eval object)))
+                          "Past"
+                          (flatten (vector (eval creator) (if (is-single? creator) "created" "create") (eval object)))
+                          )
                     )
-                )
-            )
+                 ) 
+             )
+             :Chinese
+             (make-sentence
+                 (flatten
+                    (vector
+                        (if (nil? time) [] (vector (eval time)))
+                          (flatten (vector (eval creator) (CREATE) (eval object)))                   
+                    )
+                  )  
+             )
         )
     )
 )
 
-;   ([creator object & {:keys [time tense]}]
-;   (if (= tense :single)
-;      (flatten (vector time "," creator "creates" object))
-;      (flatten (vector time "," creator "create" object)))))
-
 (defn GOD
-    ([] (vector "God")))
+    ([] 
+        (case language
+            :English
+            (vector "God") 
+            :Chinese
+            (vector "神")
+        )
+    )
+)
 
 (defn BEGIN
-    ([] (vector "begin"))
-        ([x] (if (= x :time) (vector "in the beginning") (vector "begin"))))
+    ([] 
+        (case language
+            :English
+            (vector "in the beginning")
+            :Chinese
+            (vector "起初")
+        )        
+    )
+)
 
 (defn HEAVEN
     ([& {:keys [number spec]
          :or {number "Singular" spec "Definite"}}]
-        (case number
-            "Singular"
-            (case spec
-                "Definite"
-                (vector "the heaven")
-                "Indefinite"
-                (vector "a heaven")
+        (case language
+            :English
+            (case number
+                "Singular"
+                (case spec
+                    "Definite"
+                    (vector "the heaven")
+                    "Indefinite"
+                    (vector "a heaven")
+                )
+                "Plural"
+                (case spec
+                    "Definite"
+                    (vector "the heavens")
+                    "Indefinite"
+                    (vector "heavens")
+                )
             )
-            "Plural"
-            (case spec
-                "Definite"
-                (vector "the heavens")
-                "Indefinite"
-                (vector "heavens")
-            )
+            :Chinese
+            (vector "天")
         )
     )
 )
@@ -76,31 +113,48 @@
 (defn EARTH
     [& {:keys [number spec]
          :or {number "Singular" spec "Definite"}}]
-    (case number
-        "Singular"
-        (case spec
-            "Definite"
-            (vector "the earth")
-            "Indefinite"
-            (vector "an earth")
+    (case language
+        :English 
+        (case number
+            "Singular"
+            (case spec
+                "Definite"
+                (vector "the earth")
+                "Indefinite"
+                (vector "an earth")
+            )
+            "Plural"
+            (case spec
+                "Definite"
+                (vector "the earths")
+                "Indefinite"
+                (vector "earths")
+            )
         )
-        "Plural"
-        (case spec
-            "Definite"
-            (vector "the earths")
-            "Indefinite"
-            (vector "earths")
-        )
+        :Chinese
+        (vector "地")
     )
 )
 
 (defn AND
-    ([x,y] (flatten (vector (eval x) "and" (eval y)))))
+    ([x,y] 
+        (case language
+            :English
+            (flatten (vector (eval x) "and" (eval y)))
+            :Chinese
+            (flatten (vector (eval x) "和" (eval y)))
+        )
+    )
+)
 
+(def language :English)
 (defn BOOK-BIBLE
     []
     (vector
 ;        (CREATE '(GOD) '(AND '(HEAVEN) '(EARTH)))
-        (CREATE '(GOD) '(AND '(HEAVEN {:number "Plural" :spec "Definite"}) '(EARTH)) {:tense "Past" :time '(BEGIN :time)})
+        (CREATE '(GOD) '(AND '(HEAVEN {:number "Plural" :spec "Definite"}) '(EARTH)) {:tense "Past" :time '(BEGIN)})
     )
 )
+
+(CREATE '(GOD) '(AND '(HEAVEN {:number "Plural" :spec "Definite"}) '(EARTH)) {:tense "Past" :time '(BEGIN)})
+
