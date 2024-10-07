@@ -19,11 +19,7 @@
 ;; Example usage
 (println (generate-graph [\H \e]))
 
-(defn dg-init
-  "Initialize an empty directed graph."
-  []
-  {:nodes {}   ; Map from node IDs to node info {:next #{}, :prev #{}}
-   :edges {}}) ; Map from [i j] to set of elements
+ ; Map from [i j] to set of elements
 
 (defn dg-add-edge
   "Add an edge from node i to node j with the given element.
@@ -60,19 +56,24 @@
         (if (empty? new-edge-elements)
           ;; Remove the edge completely
           (let [new-edges (dissoc edges edge-key)
-                ;; Update nodes by removing connections
-                new-node-i (update-in nodes [i :next] disj j)
-                new-node-j (update-in nodes [j :prev] disj i)
-                new-nodes (assoc nodes
-                            i (if (empty? (:next (new-node-i i)))
-                                (dissoc new-node-i i)
-                                (new-node-i i))
-                            j (if (empty? (:prev (new-node-j j)))
-                                (dissoc new-node-j j)
-                                (new-node-j j)))]
-            {:nodes new-nodes
+                ;; Update node i's :next by removing j
+                node-i (get nodes i {:next #{}, :prev #{}})
+                updated-node-i (update node-i :next disj j)
+                ;; Update node j's :prev by removing i
+                node-j (get nodes j {:next #{}, :prev #{}})
+                updated-node-j (update node-j :prev disj i)
+                ;; Remove nodes if both :next and :prev are empty (optional)
+                nodes-without-i (if (and (empty? (:next updated-node-i))
+                                         (empty? (:prev updated-node-i)))
+                                  (dissoc nodes i)
+                                  (assoc nodes i updated-node-i))
+                nodes-without-j (if (and (empty? (:next updated-node-j))
+                                         (empty? (:prev updated-node-j)))
+                                  (dissoc nodes-without-i j)
+                                  (assoc nodes-without-i j updated-node-j))]
+            {:nodes nodes-without-j
              :edges new-edges})
-          ;; Update edge with new set of elements
+          ;; Edge still has elements, update the edge
           {:nodes nodes
            :edges (assoc edges edge-key new-edge-elements)}))
       ;; Edge does not exist; return graph unchanged
