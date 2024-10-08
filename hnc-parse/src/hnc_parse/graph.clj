@@ -19,6 +19,14 @@
 ;; Example usage
 (println (generate-graph [\H \e]))
 
+
+(defn dg-init
+  "Initialize an empty directed graph."
+  []
+  {:nodes {}   ; Map from node IDs to node info {:next #{}, :prev #{}}
+   :edges {}}) ; Map from [i j] to set of elements
+
+
  ; Map from [i j] to set of elements
 
 (defn dg-add-edge
@@ -42,6 +50,16 @@
               j new-node-j)
      :edges (assoc edges
               edge-key new-edge-elements)}))
+
+(defn get-edge-elements
+  "Retrieve the set of elements associated with the edge from node i to node j."
+  [graph i j]
+  (get-in graph [:edges [i j]] #{[]}))
+
+(defn dg-add-edge?
+  "Check if a value exists on the edge from node i to node j."
+  [graph i j value]
+  (contains? (get-edge-elements graph i j) value))
 
 (defn dg-remove-edge
   "Remove the element from the edge from node i to node j.
